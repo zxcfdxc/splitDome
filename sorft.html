@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<link rel="stylesheet" type="text/css" href="js/layui-v2.4.5/layui/css/layui.css" />
+	<style type="text/css">
+		#items>* {
+			background-color: #ddd;
+			margin-bottom: 5px;
+			width: 550px;
+			padding: 5px;
+			/* width: auto; */
+			height: auto;
+			min-height: 20px;
+			display: block;
+		}
+		p{
+			min-width: 350px;
+		}
+
+		textarea {
+			display: block;
+		}
+		.hiden {
+			width: 0;
+			height: 0;
+			visibility: hidden;
+		}
+	</style>
+
+	<body>
+		<button type="button" class="layui-btn" id="test1">
+			<i class="layui-icon">&#xe67c;</i>上传文件
+		</button>
+		<button type="button" class="layui-btn" id="next">
+			下一步  <i class="layui-icon">&#xe602;</i>
+		</button>
+		<!-- <div id="page_1"> -->
+			
+		<div id="items">
+
+		</div>
+		<!-- </div> -->
+
+		<div id="html_content">
+			
+		</div>
+	</body>
+	<script id="demo" type="text/html">
+		<!-- <div id="div'+i+'"><input placeholder="标题" /><button>提交</button><textarea id=' + ditID + '> -->
+</script>
+	<script src="http://cdn.bootcss.com/jquery/1.12.3/jquery.min.js"></script>
+	<script src="js/layui-v2.4.5/layui/layui.js"></script>
+	<script src="node_modules/sortablejs/Sortable.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		layui.use(['layer','upload', 'layedit', 'laytpl'], function() {
+			let upload = layui.upload;
+			let laytpl = layui.laytpl;
+			let layer = layui.layer;
+			let el = document.getElementById('items');
+			let sortable = Sortable.create(el);
+			let htmlContent = $("#html_content");
+		    let innertxtList = [];
+		$("#next").click(function(e){
+			goNext()
+		})
+		
+		//下一步
+		function goNext() {
+			
+			$("#items>div").each(function(){
+				console.log($(this).children('.h-content').text());
+				innertxtList.push({
+					'content':$(this).children('.h-content').text(),
+					'contentHtml':$(this).children('.h-content').html(),
+					'tit': $(this).children('.hiden').text(),
+					'id': $(this).attr("id")
+					})
+			})
+			localStorage.setItem("list",JSON.stringify(innertxtList))
+			location.href = "jquery.image-maps-master/demo.html"
+			
+		}
+		
+		//插入数组
+		function insertArr(key,value) {
+			innertxtList.push({ke})
+		}
+		
+			//执行实例
+			var uploadInst = upload.render({
+				elem: '#test1', //绑定元素
+				auto: false, //选择文件后不自动上传
+				accept: "file",
+				choose: function(obj) {
+					var reader=new FileReader();
+					//将每次选择的文件追加到文件队列
+					var files = obj.pushFile();
+			
+					//预读本地文件，如果是多文件，则会遍历。(不支持ie8/9)
+					obj.preview(function(index, file, result) {
+						console.log(index); //得到文件索引
+						let aaa= result.split(',')[1];
+						let bbb = self.atob(aaa)
+						htmlContent.html(bbb)
+						splitHtml();
+					});
+				}
+			});
+			//拆分Html
+			function splitHtml() {
+				let htmlB = htmlContent.html();
+				// let htmlDiv =
+				let plist = htmlContent.find("p:first-of-type");
+				let imgList = htmlContent.find("img");
+				console.log(imgList);
+				let $items = $('#items');
+				$("html").prepend(htmlContent.find("style").prop("outerHTML"))
+				$items.empty();
+			     // let parentDiv = 
+				let resultList = [];
+			
+				for (let i in plist) {
+					let text = plist.eq(i).text();
+					let insetHtml = plist.eq(i).parent().prop("outerHTML");
+				// console.log(plist.eq(i).text());
+					if (text != '') {
+						let hText ='<div id=' + i + '><div class="h-content">' + insetHtml +'</div><div class="hiden">'
+						$items.append(hText);
+					}
+				
+				}
+				console.log(imgList.length);
+				for (let i=0;i< imgList.length;i++) {
+					let mID=plist.length+i;
+					console.log(imgList.eq(i));
+						let mText ='<div id=' + mID+ '><div class="h-content"></div><div class="hiden">'
+					$items.append(mText);
+					// console.log(mID);
+					$("#"+mID+" .h-content").append(imgList.eq(i));
+				}
+				let itemChild = $items.children();
+				let layditIndex;
+				let layedit;
+				
+				//添加点击事件
+				for (let i in itemChild) {
+					let ditID;
+					let itemMain = itemChild.eq(i);
+					let hContent = itemMain.find(".h-content");
+					//内容点击事件
+					hContent.on('click',
+						function(e) {
+							let targetId;
+							
+							$target = $(e.target).parents('.h-content').parent();
+// 							
+							console.log($target);
+							targetId = $target.attr('id');
+							ditID = 'ta' + targetId;
+							console.log(targetId);
+							
+							$('.divc').remove();
+							 let titItem = $('#'+targetId+" .hiden").text();
+						   
+							if(titItem) {
+								$target.append('<div class="divc" id="div' + i +
+									'"><input placeholder="标题" value="'+titItem+'" /><button>提交</bottom>'
+									// +'<textarea id=' + ditID +'>'
+									);
+							
+							}else {
+								$target.append('<div class="divc" id="div' + i +
+									'"><input placeholder="标题" /><button>提交</button>'
+									);	
+							}
+							$('#'+targetId+' button').click(function(e) {
+								console.log($target.find(".hiden"));
+								$target.find(".hiden").text($(e.target).prev().val()) ;
+								layer.msg("添加成功")
+//点击确定后
+// 							
+							})
+				         				
+						}
+					)
+					//提交事件
+					itemMain.children("button").click(function(e){
+						hContent.children(".hiden").text($(e.target).prev().val()) ;
+					
+					})
+					
+					
+
+				}
+			}
+			
+			
+		});
+	</script>
+</html>

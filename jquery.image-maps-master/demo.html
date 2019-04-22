@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Image Maps test</title>
+		<link rel="stylesheet" type="text/css" href="../js/layui-v2.4.5/layui/css/layui.css" />
+
+		<!-- 
+<script type="text/javascript" language="javascript" src="./require.js"></script>
+-->
+
+		<script type="text/javascript" language="javascript" src="./jquery-1.9.1.min.js"></script>
+		<script src="../js/layui-v2.4.5/layui/layui.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" language="javascript" src="./jquery.image-maps5.0.js"></script>
+		<link rel="stylesheet" type="text/css" href="./imageHotAreaStyle.css">
+		<style type="text/css">
+			.checkMain {
+				padding: 2px 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="hot_area" id="areaContent">
+			<!-- 1.图片url显示部分：-->
+			<input id="" type="text" class="" readonly="readonly" value="">
+
+			<!-- 2.图片展示部分：-->
+			<div class="" name="imageMap" id="image_map">
+				<img src="" ref="imageMap" id="photo" />
+			</div>
+
+			<!--3.添加热区对应编辑链接列表渲染部分，目前需两者选一：
+     1)tablebody样式：-->
+			<table>
+				<tbody id="areaItems"> </tbody>
+			</table>
+
+			<!-- 2)ul样式：
+     <ul id="areaItems"></ul>-->
+
+			<!-- 4.添加热区按钮部分：-->
+			<p><a id="add_hot_area"  class="layui-btn">添加热区</a> &nbsp;
+				<a id="btnTrue"  class="layui-btn">确定选区</a>
+				<!-- <a id="" href="JavaScript:viewMap();" class="">查看热区</a> -->
+			</p>
+			<p></p>
+
+			<!-- 5.热区数据存储（隐藏）：-->
+			<input type="text" class="" id="hotAreas" name="hotAreas" value=''>
+
+			<!-- 6.可添加热区数量与还可添加热区数量实时显示（可选）：-->
+			<p><span class="">已添加已添加<b class="added_amount">0</b>个热区， 还可添加<b class="remain_amount">X</b>个热区</span></p>
+		</div>
+		<textarea id="showText" style="display: none;"></textarea>
+
+		<script id="demo" type="text/html">
+
+			{{#  layui.each(d, function(index, item){ console.log(d)}}
+   <div id="" class='checkMain'>
+  
+    {{#  if(item.tit){ }}
+	 <input type="checkbox" name="hobby" value="{{item.id}}" />{{item.tit.trim().substring(0,100)}}  
+
+  {{#  }else if(item.content){  }}
+	 
+	  <input type="checkbox" name="hobby" value="{{item.id}}" />{{item.content.trim().substring(0,100)}}  
+	
+	  </div>
+	  
+    {{#} }} 
+    {{#  }); }}
+	 
+
+  </ul>
+</script>
+		<script type="text/javascript" language="javascript">
+			var datahtml;
+			var getTpl = demo.innerHTML;
+			var datalist = JSON.parse(localStorage.getItem("list"));
+			var showList = [];
+			layui.use(['layer', 'upload', 'layedit', 'laytpl'], function() {
+				var layer = layui.layer,
+					laytpl = layui.laytpl;
+				laytpl(getTpl).render(datalist, function(html) {
+					datahtml = html;
+				});
+				// selectFun
+
+				$(document).ready(function() {
+					//$(function(){
+					var setting = {
+						maxAmount: 50,
+						tag: 'tr',
+						params: {
+							// 			'areaLink':'添加热区时的默认值',
+							// 			'areaType':'添加热区时的默认值'
+						},
+						proportion: "0.5",
+						domCallBack: function(params) {
+							//console.log(params);
+							return "<td><input type='hidden' name='useText' class='useText'/></td>"
+						},
+						selectFun: function(e) {
+							var mapPosition = $(e.target).parent();
+							var selectIdList = [];
+							var textTag = $(setting.tag + '[name="areaItem"][ref=' + mapPosition.attr('ref') + '] .useText');
+							if (textTag.val()) {
+								selectIdList = textTag.val().split(',');
+							}
+							let allseletList = [];
+							console.log(selectIdList);
+							layer.open({
+								type: 1,
+								skin: 'layui-layer-demo', //加上边框
+								// area: ['420px', '240px'], //宽高
+								btn: ['确定', '取消'], //按钮
+								content: datahtml,
+								success: function(layero, index) {
+									// allseletList = [];
+									$('.useText').each(function() {
+										if ($(this).val()) {
+											console.log($(this).val().split(','));
+											let item = $(this).val().split(',');
+											allseletList = allseletList.concat(item);
+											console.log(item, allseletList);
+										}
+
+									})
+									console.log(allseletList);
+
+									$('input:checkbox').each(function() {
+										if (allseletList.indexOf($(this).val()) != -1) {
+											$(this).attr('disabled', true)
+										}
+										if (selectIdList.indexOf($(this).val()) != -1) {
+											$(this).attr('disabled', false)
+											$(this).prop('checked', true)
+										}
+									});
+								},
+								yes: function(index, layero) {
+									selectIdList = []
+									$('input:checkbox').each(function() {
+										if ($(this).prop('checked') == true) {
+											console.log($(this).val());
+											selectIdList.push($(this).val());
+										}
+									});
+									console.log(selectIdList);
+
+									textTag.val(selectIdList.toString());
+
+
+									layer.close(index); //如果设定了yes回调，需进行手工关闭
+								}
+
+							});
+						}
+					}
+
+					//初始化加载
+					var areas =
+						"[{'areaTitle':'热区1','areaLink':'','areaMapInfo':'0,0,120,80'},{'areaTitle':'热区 2','areaLink':'','areaMapInfo':'260,13,353,112'}]";
+					$("#hotAreas").val(areas);
+					$("#btnTrue").click(function() {
+						let htmlt = getData().selectHtml
+						layui.use('layedit', function() {
+							var layedit = layui.layedit;
+							layedit.build('showText'); //建立编辑器
+							$('.layui-layedit iframe').contents().find("body").html(htmlt);
+
+						});
+					})
+					// $('#hotAreas').val('');     //清空热区数据
+					$('#image_map').imageMaps(setting);
+					//imageMaps.originalManual("./size.jpg",setting,true);
+					imageMaps.proportionNoSameManual("./bg.png", setting, 1, 1, true);
+
+					//"hotAreas" : "[{'areaTitle':'热区1','areaLink':'','areaMapInfo':'0,0,90,30'},{'areaTitle':'热区 2','areaLink':'','areaMapInfo':'260,13,353,112'}]"
+					function getData() {
+						let selectHtml = '';
+						let selectEndData = [];
+						$("#areaItems tr").each(function() {
+							console.log($(this).find(".useText").val());
+							if ($(this).find(".useText").val()==null) return;
+							var slist = $(this).find(".useText").val().split(',');
+console.log(slist);
+							slist.forEach(function(item) {
+								console.log(item);
+								datalist.forEach(function(dataItem) {
+									if (dataItem.id == item) {
+										selectEndData.push({
+											seletText: dataItem.content,
+											seletHtml: dataItem.contentHtml,
+											id: dataItem.id,
+										})
+										selectHtml += dataItem.contentHtml;
+										console.log(selectHtml);
+									}
+								})
+							})
+						})
+						return {
+							selectEndData,
+							selectHtml,
+						};
+					}
+
+					function getHtml() {
+
+						getData().forEach(function(item) {
+
+						})
+					}
+
+
+				});
+
+
+			});
+
+			function viewMap() {
+				alert($('#areaItems').html());
+				// $('#image_map').getAreaMapInfo();
+			}
+		</script>
+
+	</body>
+</html>
